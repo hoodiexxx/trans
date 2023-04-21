@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+from torch.nn import functional as F
 from textCNN_data import textCNN_param
 
 
@@ -206,23 +206,28 @@ class Multihead_Attention(nn.Module):
 
 
 class my_model(nn.Module):
-    def __int__(self):
+    def __init__(self):
         super(my_model, self).__init__()
-        self.my_embed = nn.Embedding(textCNN_param['vocab_size'],
+        self.my_embed = nn.Embedding(textCNN_param['vocab_size'] - 1,
                                      textCNN_param['embed_dim'], padding_idx=1)
-        self.my_linear = nn.Linear(128, 4)
+        self.my_linear = nn.Linear(256, 4)
+        self.dropout = nn.Dropout(0.2)
         self.layers = nn.ModuleList(
             [Multihead_Attention(hidden_dim=textCNN_param['embed_dim'],
-                                 num_heads=2,
-                                 dropout_rate=0.0) for _ in range(6)])
+                                 num_heads=1,
+                                 dropout_rate=0.2) for _ in range(6)])
 
     def forward(self, sentences):
-        sentences = self.embed(sentences)
+        # sentences = sentences.long()
+        sentences = self.my_embed(sentences)
         for layer in self.layers:
-            sentences = layer(sentences, sentences, sentences)
-
-        sentences = self.my_linear(sentences)
-        return sentences
+            sentences = layer(sentences, sentences,
+                              sentences)  # sentence 64x20x128
+        model_ouotput = self.my_linear(sentences)  # 64x20x4
+        model_ouotput = torch.mean(model_ouotput, dim=1)  # 64x4
+        model_ouotput = F.log_softmax(model_ouotput, dim=1)
+        model_ouotput = self.dropout(model_ouotput)
+        return model_ouotput
 
 
 if __name__ == '__main__':

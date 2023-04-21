@@ -41,7 +41,7 @@ label_w2n, label_n2w = sen2inds.read_labelFile('data/label.txt')
 
 textCNN_param = {
     'vocab_size': len(word2ind) + 1,
-    'embed_dim': 128,  # 1 x 128 vector
+    'embed_dim': 256,  # 1 x 128 vector
     'class_num': len(label_w2n),
     "kernel_num": 16,
     "kernel_size": [3, 4, 5],
