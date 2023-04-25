@@ -1,11 +1,6 @@
 import torch
 import torch.nn as nn
-import time
 
-import torch.optim as optim
-
-from transformer import Transformer
-import sen2inds
 from textCNN_data import textCNN_data, textCNN_param, dataLoader_param
 from torch.utils.data import DataLoader
 from multihead_attention import my_model
@@ -30,7 +25,7 @@ def validation(model, val_dataLoader, device):
                 # out = F.max_pool1d(out, out.size(2)).squeeze(2)
                 # softmax = nn.Softmax(dim=1)
 
-                pred = torch.argmax(out, dim=1) # 64x4 -> 64x1
+                pred = torch.argmax(out, dim=1)  # 64x4 -> 64x1
 
                 correct += (pred == clas).sum()
                 total += clas.size()[0]
@@ -50,8 +45,12 @@ torch.manual_seed(seed)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-# # device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-device = 'cpu'
+if torch.cuda.is_available():
+    device = 'cuda:0'
+else:
+    device = 'cpu'
+
+# device = 'cpu'
 
 
 # init dataset
@@ -90,6 +89,9 @@ if __name__ == "__main__":
         for i, (clas, sentences) in enumerate(train_dataLoader):
             # sentences: batch size 64 x sentence length 20 x embed dimension 128
             # 一个字是个128维vector 一句话是个 20x128的2D tensor 一个batch有64句话是个 64x20x128的3D tensor
+            clas.to(device)
+            sentences.to(device)
+            model.to(device)
             out = model(
                 sentences)  # out: batch size 64 x word vector 4 (after my_linear)
             loss = criterion(out, clas)

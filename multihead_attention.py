@@ -219,6 +219,7 @@ class my_model(nn.Module):
 
     def forward(self, sentences):
         # sentences = sentences.long()
+        sentences.to('cuda:0')
         sentences = self.my_embed(sentences)
         for layer in self.layers:
             sentences = layer(sentences, sentences,
